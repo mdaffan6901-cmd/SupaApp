@@ -1,0 +1,45 @@
+# ─── Secrets / Environment ─────────────────────
+.env
+.env.local
+.env.*.local
+*.env
+
+# ─── Antigravity / Agent config ─────────────────
+.agents/
+.agent/
+.gemini/
+*.agy
+.agy/
+
+# ─── Vercel ──────────────────────────────────────
+.vercel
+
+# ─── Logs ────────────────────────────────────────
+*.log
+logs/
+npm-debug.log*
+
+# ─── OS junk ─────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+desktop.ini
+ehthumbs.db
+
+# ─── Editor ──────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+*.suo
+*.user
+.project
+.classpath
+
+# ─── Node (if added later) ───────────────────────
+node_modules/
+dist/
+.cache/

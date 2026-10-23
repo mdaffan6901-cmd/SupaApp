@@ -1,0 +1,886 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SupaApp Dashboard" />
+  <meta name="theme-color" content="#6c63ff" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+  <title>SupaApp — Dashboard</title>
+  <link rel="stylesheet" href="src/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+</head>
+<body>
+
+<!-- ── Loading screen ── -->
+<div id="loading-screen" style="
+  display:flex; align-items:center; justify-content:center;
+  min-height:100vh; flex-direction:column; gap:16px;
+">
+  <div class="spinner" style="width:44px;height:44px;border-width:3px"></div>
+  <p style="color:var(--text-muted);font-size:14px">Loading…</p>
+</div>
+
+<!-- ── App Shell ── -->
+<div class="app-layout" id="app" style="display:none">
+
+  <!-- TOPBAR -->
+  <header class="topbar">
+    <a class="topbar-brand" href="dashboard.html">
+      <div class="logo-mini">🚀</div>
+      SupaApp
+    </a>
+
+    <div class="topbar-actions">
+      <div class="realtime-badge" title="Realtime connection active">
+        <div class="realtime-dot"></div>
+        Live
+      </div>
+
+      <button class="user-pill" id="user-pill" title="View profile">
+        <div class="user-avatar" id="topbar-avatar"></div>
+        <span class="user-pill-name" id="topbar-name">…</span>
+      </button>
+
+      <button class="btn btn-ghost" id="signout-btn" style="padding:8px 16px;font-size:13px">
+        Sign out
+      </button>
+    </div>
+  </header>
+
+  <!-- SIDEBAR -->
+  <nav class="sidebar" aria-label="Main navigation">
+    <span class="nav-section-label">Menu</span>
+
+    <button class="nav-item active" data-page="home">
+      <span class="nav-icon">🏠</span> Home
+    </button>
+    <button class="nav-item" data-page="posts">
+      <span class="nav-icon">📝</span> Posts
+    </button>
+    <button class="nav-item" data-page="storage">
+      <span class="nav-icon">🗂️</span> Storage
+    </button>
+
+    <span class="nav-section-label">Account</span>
+    <button class="nav-item" data-page="profile">
+      <span class="nav-icon">👤</span> Profile
+    </button>
+    <button class="nav-item" data-page="settings">
+      <span class="nav-icon">⚙️</span> Settings
+    </button>
+
+    <div class="nav-spacer"></div>
+    <button class="nav-item" id="sidebar-signout">
+      <span class="nav-icon">🚪</span> Sign out
+    </button>
+  </nav>
+
+  <!-- MAIN CONTENT -->
+  <main class="main-content" id="main-content">
+
+    <!-- ══════════════ HOME ══════════════ -->
+    <section class="page active" id="page-home" aria-label="Home">
+      <div class="page-header">
+        <div>
+          <div class="page-title" id="home-greeting">Welcome back! 👋</div>
+          <div class="page-subtitle">Here's what's happening</div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon purple">📝</div>
+          <div>
+            <div class="stat-value" id="stat-my-posts">—</div>
+            <div class="stat-label">My Posts</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green">🗂️</div>
+          <div>
+            <div class="stat-value" id="stat-files">—</div>
+            <div class="stat-label">Files Uploaded</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon pink">👥</div>
+          <div>
+            <div class="stat-value" id="stat-members">—</div>
+            <div class="stat-label">Members</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">⚡</div>
+          <div>
+            <div class="stat-value">Live</div>
+            <div class="stat-label">Realtime Active</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick post -->
+      <div class="card" style="margin-bottom:24px">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+          <div class="user-avatar" id="quick-avatar"></div>
+          <input id="quick-title" class="form-input" type="text" placeholder="Post title…" style="flex:1" maxlength="120" />
+        </div>
+        <textarea
+          id="quick-content"
+          class="form-textarea"
+          placeholder="What's on your mind?"
+          maxlength="2000"
+          style="width:100%;min-height:76px"
+        ></textarea>
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+          <span class="text-muted" id="quick-char-count">0 / 2000</span>
+          <button class="btn btn-primary" id="quick-post-btn" style="width:auto;padding:10px 24px">
+            Publish
+          </button>
+        </div>
+      </div>
+
+      <!-- Feed -->
+      <div>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:16px;font-weight:600">Recent Posts</h3>
+          <div class="realtime-badge"><div class="realtime-dot"></div> Live updates</div>
+        </div>
+        <div class="posts-grid" id="home-posts">
+          <div class="text-muted" style="text-align:center;padding:40px">Loading feed…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ POSTS ══════════════ -->
+    <section class="page" id="page-posts" aria-label="Posts">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Posts</div>
+          <div class="page-subtitle">Browse all community posts</div>
+        </div>
+        <button class="btn btn-primary" id="toggle-create-post" style="width:auto;padding:10px 20px">
+          + New post
+        </button>
+      </div>
+
+      <!-- Create post card -->
+      <div class="card" id="create-post-card" style="display:none;margin-bottom:24px">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:20px">Create post</h3>
+        <div class="form-group">
+          <label class="form-label">Title</label>
+          <input class="form-input" type="text" id="post-title" placeholder="Give your post a title" maxlength="120" />
+        </div>
+        <div class="form-group">
+          <label class="form-label">Content</label>
+          <textarea class="form-textarea" id="post-content" placeholder="Write your post…" maxlength="2000" style="min-height:120px;width:100%"></textarea>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Image <span class="text-muted">(optional)</span></label>
+          <div class="upload-area" id="post-img-drop">
+            <div class="upload-icon">🖼️</div>
+            <p>Click or drag & drop an image</p>
+            <p style="font-size:12px;margin-top:4px;color:var(--text-muted)">JPG, PNG, GIF, WebP — max 50 MB</p>
+            <input type="file" id="post-img-input" accept="image/*" style="display:none" />
+          </div>
+          <div id="post-img-preview" style="display:none;margin-top:12px">
+            <img id="post-img-thumb" style="max-width:200px;border-radius:var(--radius-sm);border:1px solid var(--border)" alt="Preview" />
+            <br />
+            <button class="btn btn-danger" id="remove-post-img" style="margin-top:8px">Remove image</button>
+          </div>
+        </div>
+        <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:4px">
+          <button class="btn btn-ghost" id="cancel-create-post">Cancel</button>
+          <button class="btn btn-primary" style="width:auto" id="submit-post-btn">Publish post</button>
+        </div>
+      </div>
+
+      <div class="posts-grid" id="all-posts">
+        <div class="text-muted" style="text-align:center;padding:40px">Loading posts…</div>
+      </div>
+    </section>
+
+    <!-- ══════════════ STORAGE ══════════════ -->
+    <section class="page" id="page-storage" aria-label="Storage">
+      <div class="page-header">
+        <div>
+          <div class="page-title">Storage</div>
+          <div class="page-subtitle">
+            Bucket: <code style="background:var(--bg-input);padding:2px 6px;border-radius:4px;font-size:12px">user-content</code>
+          </div>
+        </div>
+      </div>
+
+      <!-- Upload -->
+      <div class="card" style="margin-bottom:24px">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:16px">Upload files</h3>
+        <div style="display:flex;gap:16px;flex-wrap:wrap;margin-bottom:16px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="folder" value="profile-pictures" checked /> 📷 Profile pictures
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="folder" value="posts" /> 🖼️ Post images
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:13px">
+            <input type="radio" name="folder" value="misc" /> 📁 Misc
+          </label>
+        </div>
+        <div class="upload-area" id="storage-drop">
+          <div class="upload-icon">☁️</div>
+          <p>Click or drag & drop files here</p>
+          <p style="font-size:12px;margin-top:4px;color:var(--text-muted)">Images & videos up to 50 MB</p>
+          <input type="file" id="storage-file-input" multiple accept="image/*,video/mp4" style="display:none" />
+        </div>
+        <div id="upload-status-bar" style="display:none;margin-top:12px;font-size:13px;color:var(--text-muted)"></div>
+      </div>
+
+      <!-- Files grid -->
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px">
+          <h3 style="font-size:15px;font-weight:600">Your files</h3>
+          <button class="btn btn-ghost" id="refresh-files" style="padding:8px 14px;font-size:12px">🔄 Refresh</button>
+        </div>
+        <div id="files-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px">
+          <div class="text-muted" style="grid-column:1/-1;text-align:center;padding:32px">Loading…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════════ PROFILE ══════════════ -->
+    <section class="page" id="page-profile" aria-label="Profile">
+      <div class="page-header">
+        <div class="page-title">My Profile</div>
+      </div>
+      <div class="card">
+        <!-- Header preview -->
+        <div class="profile-header">
+          <div class="avatar-upload-wrapper">
+            <div class="profile-avatar-lg" id="profile-avatar-lg"></div>
+            <div class="avatar-upload-btn" id="avatar-trigger" title="Change photo">✏️</div>
+            <input type="file" id="avatar-input" accept="image/*" style="display:none" />
+          </div>
+          <div class="profile-info">
+            <div class="profile-name"  id="pv-name">—</div>
+            <div class="profile-username" id="pv-username">@—</div>
+            <div class="profile-bio" id="pv-bio" style="margin-top:8px;font-size:14px;color:var(--text-secondary)"></div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Edit form -->
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:20px">Edit profile</h3>
+        <form id="profile-form" novalidate>
+          <div class="form-group">
+            <label class="form-label" for="pf-fullname">Full name</label>
+            <input class="form-input" type="text" id="pf-fullname" maxlength="60" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pf-username">Username</label>
+            <input class="form-input" type="text" id="pf-username" maxlength="30" />
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="pf-bio">Bio <span class="text-muted">(optional)</span></label>
+            <textarea class="form-textarea" id="pf-bio" maxlength="200" placeholder="Tell the world about yourself…" style="min-height:80px;width:100%"></textarea>
+            <div class="char-counter" style="text-align:right;font-size:11px;color:var(--text-muted);margin-top:4px">
+              <span id="bio-count">0</span> / 200
+            </div>
+          </div>
+          <div style="display:flex;justify-content:flex-end">
+            <button type="submit" class="btn btn-primary" style="width:auto" id="save-profile-btn">
+              Save changes
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ══════════════ SETTINGS ══════════════ -->
+    <section class="page" id="page-settings" aria-label="Settings">
+      <div class="page-header">
+        <div class="page-title">Settings</div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h3 style="font-size:15px;font-weight:600;margin-bottom:20px">Account</h3>
+        <div class="form-group">
+          <label class="form-label">Email address</label>
+          <input class="form-input" type="email" id="settings-email" disabled style="opacity:0.55;cursor:not-allowed" />
+          <p class="text-muted" style="margin-top:6px;font-size:12px">Email address cannot be changed here.</p>
+        </div>
+        <div class="divider"></div>
+        <h4 style="font-size:14px;font-weight:600;margin-bottom:16px">Change password</h4>
+        <div class="form-group">
+          <label class="form-label" for="new-password">New password</label>
+          <div class="input-wrapper">
+            <input class="form-input" type="password" id="new-password" placeholder="Min. 6 characters" autocomplete="new-password" />
+            <button type="button" class="input-icon" data-toggle-pw="new-password" aria-label="Toggle">👁️</button>
+          </div>
+        </div>
+        <button class="btn btn-primary" style="width:auto" id="update-password-btn">Update password</button>
+      </div>
+
+      <div class="card">
+        <h3 style="font-size:15px;font-weight:600;color:var(--error);margin-bottom:16px">Danger zone</h3>
+        <p class="text-muted" style="margin-bottom:16px;font-size:13px">These actions are irreversible. Please proceed carefully.</p>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <button class="btn btn-danger" id="signout-all-btn">Sign out all devices</button>
+        </div>
+      </div>
+    </section>
+
+  </main><!-- /main-content -->
+</div><!-- /app-layout -->
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import {
+  supabase,
+  getSession, signOut, updatePassword,
+  getProfile, updateProfile,
+  getPosts, createPost, deletePost,
+  uploadAvatar, uploadPostImage, uploadFile, listUserFiles, deleteFile,
+  subscribeToNewPosts,
+} from './src/js/supabase.js';
+
+// ════════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════════
+let currentUser    = null;
+let currentProfile = null;
+let realtimeChannel = null;
+let selectedPostFile = null;
+
+// ════════════════════════════════════════════════
+// Utilities
+// ════════════════════════════════════════════════
+function toast(msg, type = 'info') {
+  const tc = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  const icon = { success: '✅', error: '❌', info: 'ℹ️' }[type] ?? 'ℹ️';
+  el.textContent = `${icon} ${msg}`;
+  tc.appendChild(el);
+  el.addEventListener('click', () => el.remove());
+  setTimeout(() => { el.style.opacity = '0'; }, 3200);
+  setTimeout(() => el.remove(), 3600);
+}
+
+function setLoading(btn, loading, label) {
+  btn.disabled = loading;
+  btn.innerHTML = loading ? '<span class="spinner"></span>&ensp;Please wait…' : label;
+}
+
+function timeAgo(dateStr) {
+  const s = Math.floor((Date.now() - new Date(dateStr)) / 1000);
+  if (s < 60)  return 'just now';
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  return `${Math.floor(s / 86400)}d ago`;
+}
+
+function renderAvatarEl(el, avatarUrl, name) {
+  if (!el) return;
+  if (avatarUrl) {
+    el.innerHTML = `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" />`;
+  } else {
+    el.textContent = (name || '?')[0].toUpperCase();
+  }
+}
+
+// ════════════════════════════════════════════════
+// Auth guard
+// ════════════════════════════════════════════════
+async function init() {
+  const session = await getSession();
+  if (!session) {
+    window.location.replace('index.html');
+    return;
+  }
+  currentUser = session.user;
+
+  await loadProfile();
+  setupNav();
+  setupPostForm();
+  setupStorage();
+  setupSettings();
+
+  await Promise.all([loadStats(), loadFeed('home'), loadFeed('all')]);
+  setupRealtime();
+
+  document.getElementById('loading-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'grid';
+}
+
+// ════════════════════════════════════════════════
+// Profile
+// ════════════════════════════════════════════════
+async function loadProfile() {
+  const { data, error } = await getProfile(currentUser.id);
+  if (!error && data) currentProfile = data;
+  syncProfileUI();
+}
+
+function syncProfileUI() {
+  const name      = currentProfile?.full_name  || currentUser.email;
+  const username  = currentProfile?.username   || '';
+  const bio       = currentProfile?.bio        || '';
+  const avatarUrl = currentProfile?.avatar_url || null;
+
+  // Topbar
+  document.getElementById('topbar-name').textContent = name.split(' ')[0];
+  renderAvatarEl(document.getElementById('topbar-avatar'), avatarUrl, name);
+
+  // Quick-post avatar
+  renderAvatarEl(document.getElementById('quick-avatar'), avatarUrl, name);
+
+  // Profile preview
+  document.getElementById('pv-name').textContent     = name;
+  document.getElementById('pv-username').textContent = `@${username}`;
+  document.getElementById('pv-bio').textContent       = bio || 'No bio yet.';
+  renderAvatarEl(document.getElementById('profile-avatar-lg'), avatarUrl, name);
+
+  // Profile edit fields
+  document.getElementById('pf-fullname').value = name;
+  document.getElementById('pf-username').value = username;
+  document.getElementById('pf-bio').value      = bio;
+  document.getElementById('bio-count').textContent = bio.length;
+
+  // Settings
+  document.getElementById('settings-email').value = currentUser.email;
+
+  // Home greeting
+  document.getElementById('home-greeting').textContent =
+    `Welcome back, ${name.split(' ')[0]}! 👋`;
+}
+
+// ════════════════════════════════════════════════
+// Stats
+// ════════════════════════════════════════════════
+async function loadStats() {
+  const [myPostsRes, membersRes] = await Promise.all([
+    supabase.from('posts').select('id', { count: 'exact', head: true }).eq('user_id', currentUser.id),
+    supabase.from('profiles').select('id', { count: 'exact', head: true }),
+  ]);
+  document.getElementById('stat-my-posts').textContent = myPostsRes.count ?? '0';
+  document.getElementById('stat-members').textContent  = membersRes.count ?? '0';
+
+  // File count
+  try {
+    const files = await listUserFiles(currentUser.id);
+    document.getElementById('stat-files').textContent = files.length;
+  } catch (_) {
+    document.getElementById('stat-files').textContent = '0';
+  }
+}
+
+// ════════════════════════════════════════════════
+// Posts / Feed
+// ════════════════════════════════════════════════
+function buildPostCard(post, isOwner) {
+  const name      = post.profiles?.full_name || 'Unknown';
+  const username  = post.profiles?.username  || '';
+  const avatarUrl = post.profiles?.avatar_url || null;
+  const avatarHTML = avatarUrl
+    ? `<img src="${avatarUrl}" alt="${name}" style="width:100%;height:100%;object-fit:cover;border-radius:50%" />`
+    : `<span style="font-weight:700;font-size:13px">${name[0].toUpperCase()}</span>`;
+
+  const card = document.createElement('article');
+  card.className = 'post-card';
+  card.id = `post-${post.id}`;
+  card.innerHTML = `
+    <div class="post-header">
+      <div class="user-avatar">${avatarHTML}</div>
+      <div class="post-author-info">
+        <div class="post-author-name">
+          ${name}
+          ${username ? `<span style="color:var(--text-muted);font-weight:400;font-size:13px">@${username}</span>` : ''}
+        </div>
+        <div class="post-time">${timeAgo(post.created_at)}</div>
+      </div>
+    </div>
+    ${post.title   ? `<div class="post-title">${escapeHTML(post.title)}</div>` : ''}
+    ${post.content ? `<div class="post-content-text">${escapeHTML(post.content)}</div>` : ''}
+    ${post.image_url ? `<img class="post-image" src="${post.image_url}" alt="Post image" loading="lazy" />` : ''}
+    ${isOwner
+      ? `<div class="post-actions">
+           <button class="btn btn-danger delete-btn" data-id="${post.id}" style="font-size:12px;padding:6px 12px">
+             🗑️ Delete
+           </button>
+         </div>`
+      : ''}
+  `;
+
+  card.querySelector('.delete-btn')?.addEventListener('click', async (e) => {
+    if (!confirm('Delete this post?')) return;
+    const { error } = await deletePost(e.currentTarget.dataset.id);
+    if (error) { toast(error.message, 'error'); return; }
+    card.remove();
+    toast('Post deleted.', 'success');
+    loadStats();
+  });
+
+  return card;
+}
+
+function escapeHTML(str) {
+  return String(str)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+async function loadFeed(target) {
+  const { data, error } = await getPosts(40);
+  const posts = data || [];
+
+  const ids = target === 'home'
+    ? ['home-posts']
+    : target === 'all'
+    ? ['all-posts']
+    : ['home-posts', 'all-posts'];
+
+  ids.forEach(id => {
+    const c = document.getElementById(id);
+    c.innerHTML = '';
+    if (error || posts.length === 0) {
+      c.innerHTML = '<div class="text-muted" style="text-align:center;padding:40px">No posts yet. Be the first!</div>';
+      return;
+    }
+    posts.forEach(p => c.appendChild(buildPostCard(p, p.user_id === currentUser.id)));
+  });
+}
+
+// Quick post (Home)
+document.getElementById('quick-content').addEventListener('input', function () {
+  document.getElementById('quick-char-count').textContent = `${this.value.length} / 2000`;
+});
+
+document.getElementById('quick-post-btn').addEventListener('click', async () => {
+  const title   = document.getElementById('quick-title').value.trim();
+  const content = document.getElementById('quick-content').value.trim();
+  if (!title && !content) { toast('Write something first!', 'error'); return; }
+
+  const btn = document.getElementById('quick-post-btn');
+  setLoading(btn, true, 'Publish');
+  const { error } = await createPost(currentUser.id, title, content);
+  setLoading(btn, false, 'Publish');
+  if (error) { toast(error.message, 'error'); return; }
+
+  document.getElementById('quick-title').value   = '';
+  document.getElementById('quick-content').value = '';
+  document.getElementById('quick-char-count').textContent = '0 / 2000';
+  toast('Post published!', 'success');
+  loadStats();
+});
+
+// ════════════════════════════════════════════════
+// Realtime
+// ════════════════════════════════════════════════
+function setupRealtime() {
+  realtimeChannel = subscribeToNewPosts(async (payload) => {
+    const { data } = await supabase
+      .from('posts')
+      .select('*, profiles(username, full_name, avatar_url)')
+      .eq('id', payload.new.id)
+      .single();
+    if (!data) return;
+
+    ['home-posts', 'all-posts'].forEach(id => {
+      const c = document.getElementById(id);
+      c.querySelector('.text-muted')?.remove();
+      const card = buildPostCard(data, data.user_id === currentUser.id);
+      card.style.border = '1px solid rgba(108,99,255,0.5)';
+      setTimeout(() => card.style.border = '', 3000);
+      c.insertBefore(card, c.firstChild);
+    });
+    toast('New post arrived!', 'info');
+  });
+}
+
+// ════════════════════════════════════════════════
+// Post Form (Posts page)
+// ════════════════════════════════════════════════
+function setupPostForm() {
+  const card = document.getElementById('create-post-card');
+
+  document.getElementById('toggle-create-post').addEventListener('click', () => {
+    card.style.display = card.style.display === 'none' ? 'block' : 'none';
+  });
+  document.getElementById('cancel-create-post').addEventListener('click', () => {
+    card.style.display = 'none';
+  });
+
+  // Image drop / pick
+  const drop  = document.getElementById('post-img-drop');
+  const input = document.getElementById('post-img-input');
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', e => {
+    e.preventDefault(); drop.classList.remove('drag-over');
+    selectPostImage(e.dataTransfer.files[0]);
+  });
+  input.addEventListener('change', e => selectPostImage(e.target.files[0]));
+
+  document.getElementById('remove-post-img').addEventListener('click', () => {
+    selectedPostFile = null;
+    document.getElementById('post-img-preview').style.display = 'none';
+    input.value = '';
+  });
+
+  document.getElementById('submit-post-btn').addEventListener('click', async () => {
+    const title   = document.getElementById('post-title').value.trim();
+    const content = document.getElementById('post-content').value.trim();
+    if (!title && !content) { toast('Add a title or content.', 'error'); return; }
+
+    const btn = document.getElementById('submit-post-btn');
+    setLoading(btn, true, 'Publish post');
+
+    let imageUrl = null;
+    if (selectedPostFile) {
+      const { data, error } = await uploadPostImage(currentUser.id, selectedPostFile);
+      if (error) { toast('Image upload failed: ' + error.message, 'error'); setLoading(btn, false, 'Publish post'); return; }
+      imageUrl = data.publicUrl;
+    }
+
+    const { error } = await createPost(currentUser.id, title, content, imageUrl);
+    setLoading(btn, false, 'Publish post');
+    if (error) { toast(error.message, 'error'); return; }
+
+    toast('Post published!', 'success');
+    card.style.display = 'none';
+    document.getElementById('post-title').value   = '';
+    document.getElementById('post-content').value = '';
+    document.getElementById('post-img-preview').style.display = 'none';
+    selectedPostFile = null;
+    input.value = '';
+    loadStats();
+  });
+}
+
+function selectPostImage(file) {
+  if (!file) return;
+  selectedPostFile = file;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    document.getElementById('post-img-thumb').src = e.target.result;
+    document.getElementById('post-img-preview').style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
+
+// ════════════════════════════════════════════════
+// Storage Page
+// ════════════════════════════════════════════════
+function setupStorage() {
+  const drop  = document.getElementById('storage-drop');
+  const input = document.getElementById('storage-file-input');
+
+  drop.addEventListener('click', () => input.click());
+  drop.addEventListener('dragover', e => { e.preventDefault(); drop.classList.add('drag-over'); });
+  drop.addEventListener('dragleave', () => drop.classList.remove('drag-over'));
+  drop.addEventListener('drop', async e => {
+    e.preventDefault(); drop.classList.remove('drag-over');
+    for (const f of e.dataTransfer.files) await doUpload(f);
+  });
+  input.addEventListener('change', async e => {
+    for (const f of e.target.files) await doUpload(f);
+    input.value = '';
+  });
+
+  document.getElementById('refresh-files').addEventListener('click', loadFiles);
+}
+
+async function doUpload(file) {
+  const folder = document.querySelector('input[name="folder"]:checked').value;
+  const bar    = document.getElementById('upload-status-bar');
+  bar.style.display = 'block';
+  bar.textContent   = `⬆️ Uploading ${file.name}…`;
+
+  const ext  = file.name.split('.').pop().toLowerCase();
+  const path = `${folder}/${currentUser.id}/${Date.now()}.${ext}`;
+  const { error } = await uploadFile(path, file, false);
+
+  if (error) {
+    bar.textContent = `❌ ${error.message}`;
+    toast('Upload failed: ' + error.message, 'error');
+  } else {
+    bar.textContent = `✅ ${file.name} uploaded!`;
+    toast(`${file.name} uploaded!`, 'success');
+    loadFiles();
+    loadStats();
+  }
+  setTimeout(() => bar.style.display = 'none', 3000);
+}
+
+async function loadFiles() {
+  const grid = document.getElementById('files-grid');
+  grid.innerHTML = '<div class="text-muted" style="grid-column:1/-1;text-align:center;padding:32px">Loading…</div>';
+
+  let files = [];
+  try { files = await listUserFiles(currentUser.id); } catch (_) {}
+
+  grid.innerHTML = '';
+  if (files.length === 0) {
+    grid.innerHTML = '<div class="text-muted" style="grid-column:1/-1;text-align:center;padding:32px">No files yet. Upload something!</div>';
+    document.getElementById('stat-files').textContent = '0';
+    return;
+  }
+
+  document.getElementById('stat-files').textContent = files.length;
+
+  files.forEach(f => {
+    const isImg = /\.(jpg|jpeg|png|gif|webp)$/i.test(f.name);
+    const tile  = document.createElement('div');
+    tile.style.cssText = 'background:var(--bg-input);border:1px solid var(--border);border-radius:var(--radius-sm);overflow:hidden;transition:var(--transition)';
+
+    tile.innerHTML = `
+      ${isImg
+        ? `<img src="${f.publicUrl}" alt="${f.name}" loading="lazy"
+              style="width:100%;height:100px;object-fit:cover;display:block" />`
+        : `<div style="height:100px;display:flex;align-items:center;justify-content:center;font-size:34px">📄</div>`
+      }
+      <div style="padding:8px">
+        <div style="font-size:11px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${f.name}">${f.name}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px">${f.folder}</div>
+        <div style="display:flex;gap:8px;margin-top:6px;align-items:center">
+          <a href="${f.publicUrl}" target="_blank" rel="noopener"
+             style="font-size:11px;color:var(--primary);text-decoration:none">View</a>
+          <button data-path="${f.path}" class="del-file"
+                  style="font-size:11px;color:var(--error);background:none;border:none;cursor:pointer;padding:0">Delete</button>
+        </div>
+      </div>
+    `;
+
+    tile.querySelector('.del-file').addEventListener('click', async (e) => {
+      if (!confirm('Delete this file?')) return;
+      const { error } = await deleteFile(e.currentTarget.dataset.path);
+      if (error) { toast(error.message, 'error'); return; }
+      tile.remove(); toast('File deleted.', 'success'); loadStats();
+    });
+
+    grid.appendChild(tile);
+  });
+}
+
+// ════════════════════════════════════════════════
+// Profile Page
+// ════════════════════════════════════════════════
+document.getElementById('pf-bio').addEventListener('input', function () {
+  document.getElementById('bio-count').textContent = this.value.length;
+});
+document.getElementById('pf-username').addEventListener('input', function () {
+  this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+});
+
+document.getElementById('avatar-trigger').addEventListener('click', () => {
+  document.getElementById('avatar-input').click();
+});
+document.getElementById('avatar-input').addEventListener('change', async (e) => {
+  const file = e.target.files[0];
+  if (!file) return;
+  toast('Uploading avatar…', 'info');
+  const { data, error } = await uploadAvatar(currentUser.id, file);
+  if (error) { toast(error.message, 'error'); return; }
+  await updateProfile(currentUser.id, { avatar_url: data.publicUrl });
+  currentProfile = { ...currentProfile, avatar_url: data.publicUrl };
+  syncProfileUI();
+  toast('Avatar updated!', 'success');
+  e.target.value = '';
+});
+
+document.getElementById('profile-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const fullName = document.getElementById('pf-fullname').value.trim();
+  const username = document.getElementById('pf-username').value.trim();
+  const bio      = document.getElementById('pf-bio').value.trim();
+  if (!fullName) { toast('Full name is required.', 'error'); return; }
+  if (username.length < 3) { toast('Username must be at least 3 characters.', 'error'); return; }
+
+  const btn = document.getElementById('save-profile-btn');
+  setLoading(btn, true, 'Save changes');
+  const { data, error } = await updateProfile(currentUser.id, { full_name: fullName, username, bio });
+  setLoading(btn, false, 'Save changes');
+  if (error) { toast(error.message, 'error'); return; }
+  currentProfile = data;
+  syncProfileUI();
+  toast('Profile saved!', 'success');
+});
+
+// ════════════════════════════════════════════════
+// Settings Page
+// ════════════════════════════════════════════════
+function setupSettings() {
+  // Password toggle in settings
+  document.querySelectorAll('[data-toggle-pw]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const input = document.getElementById(btn.dataset.togglePw);
+      const hidden = input.type === 'password';
+      input.type = hidden ? 'text' : 'password';
+      btn.textContent = hidden ? '🙈' : '👁️';
+    });
+  });
+
+  document.getElementById('update-password-btn').addEventListener('click', async () => {
+    const pw = document.getElementById('new-password').value;
+    if (!pw || pw.length < 6) { toast('Password must be at least 6 characters.', 'error'); return; }
+    const btn = document.getElementById('update-password-btn');
+    setLoading(btn, true, 'Update password');
+    const { error } = await updatePassword(pw);
+    setLoading(btn, false, 'Update password');
+    if (error) { toast(error.message, 'error'); return; }
+    document.getElementById('new-password').value = '';
+    toast('Password updated!', 'success');
+  });
+
+  document.getElementById('signout-all-btn').addEventListener('click', async () => {
+    if (!confirm('Sign out of all devices?')) return;
+    if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+    await signOut('global');
+    window.location.replace('index.html');
+  });
+}
+
+// ════════════════════════════════════════════════
+// Navigation
+// ════════════════════════════════════════════════
+function setupNav() {
+  document.querySelectorAll('[data-page]').forEach(btn => {
+    btn.addEventListener('click', () => navigateTo(btn.dataset.page));
+  });
+
+  document.getElementById('user-pill').addEventListener('click', () => navigateTo('profile'));
+
+  ['signout-btn', 'sidebar-signout'].forEach(id => {
+    document.getElementById(id)?.addEventListener('click', async () => {
+      if (realtimeChannel) supabase.removeChannel(realtimeChannel);
+      await signOut('local');
+      window.location.replace('index.html');
+    });
+  });
+}
+
+function navigateTo(page) {
+  document.querySelectorAll('[data-page]').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll(`[data-page="${page}"]`).forEach(b => b.classList.add('active'));
+  document.getElementById(`page-${page}`)?.classList.add('active');
+  document.getElementById('main-content').scrollTo(0, 0);
+  if (page === 'storage') loadFiles();
+  if (page === 'posts')   loadFeed('all');
+}
+
+// ════════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════════
+init().catch(err => {
+  console.error('Init error:', err);
+  window.location.replace('index.html');
+});
+</script>
+</body>
+</html>

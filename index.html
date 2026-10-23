@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="SupaApp — A modern web app powered by Supabase" />
+  <meta name="theme-color" content="#6c63ff" />
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="SupaApp" />
+  <meta property="og:description" content="Sign in to your account" />
+  <meta property="og:type" content="website" />
+
+  <title>SupaApp — Sign In</title>
+
+  <link rel="stylesheet" href="src/css/style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* ── Password strength ── */
+    .pw-strength { display: flex; gap: 4px; margin-top: 8px; }
+    .pw-bar { height: 3px; flex: 1; border-radius: 2px; background: var(--border); transition: background 0.3s; }
+    .pw-bar.weak   { background: var(--error); }
+    .pw-bar.medium { background: var(--warning); }
+    .pw-bar.strong { background: var(--accent); }
+    .pw-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; min-height: 16px; }
+
+    /* ── Character counter ── */
+    .char-counter { font-size: 11px; color: var(--text-muted); text-align: right; margin-top: 4px; }
+  </style>
+</head>
+<body>
+
+<div class="auth-container">
+  <div class="auth-card">
+
+    <!-- Logo -->
+    <div class="auth-logo">
+      <div class="logo-icon">🚀</div>
+      <h1>SupaApp</h1>
+      <p>Powered by Supabase</p>
+    </div>
+
+    <!-- Tab switcher -->
+    <div class="auth-tabs" role="tablist">
+      <button class="auth-tab active" role="tab" aria-selected="true"  data-tab="login">Sign In</button>
+      <button class="auth-tab"        role="tab" aria-selected="false" data-tab="register">Sign Up</button>
+    </div>
+
+    <!-- Alert banner -->
+    <div class="alert" id="auth-alert" role="alert" aria-live="polite"></div>
+
+    <!-- ── SIGN IN ── -->
+    <form class="auth-form active" id="login-form" novalidate autocomplete="on">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email address</label>
+        <input
+          class="form-input" type="email" id="login-email"
+          placeholder="you@example.com"
+          autocomplete="email" required
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-password">
+          Password
+          <a href="#" id="forgot-pw-link" style="float:right;font-size:12px;color:var(--primary);text-decoration:none">Forgot password?</a>
+        </label>
+        <div class="input-wrapper">
+          <input
+            class="form-input" type="password" id="login-password"
+            placeholder="••••••••"
+            autocomplete="current-password" required
+          />
+          <button type="button" class="input-icon" data-toggle-pw="login-password" aria-label="Toggle password visibility">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="login-btn">
+        Sign In
+      </button>
+    </form>
+
+    <!-- ── SIGN UP ── -->
+    <form class="auth-form" id="register-form" novalidate autocomplete="on">
+      <div class="form-group">
+        <label class="form-label" for="reg-fullname">Full name</label>
+        <input
+          class="form-input" type="text" id="reg-fullname"
+          placeholder="John Doe"
+          autocomplete="name" required maxlength="60"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reg-username">Username</label>
+        <input
+          class="form-input" type="text" id="reg-username"
+          placeholder="johndoe"
+          autocomplete="username" required maxlength="30"
+          pattern="[a-z0-9_]+"
+        />
+        <div class="char-counter"><span id="username-count">0</span> / 30</div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reg-email">Email address</label>
+        <input
+          class="form-input" type="email" id="reg-email"
+          placeholder="you@example.com"
+          autocomplete="email" required
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="reg-password">Password</label>
+        <div class="input-wrapper">
+          <input
+            class="form-input" type="password" id="reg-password"
+            placeholder="Minimum 6 characters"
+            autocomplete="new-password" required minlength="6"
+          />
+          <button type="button" class="input-icon" data-toggle-pw="reg-password" aria-label="Toggle password visibility">👁️</button>
+        </div>
+        <div class="pw-strength">
+          <div class="pw-bar" id="pb1"></div>
+          <div class="pw-bar" id="pb2"></div>
+          <div class="pw-bar" id="pb3"></div>
+          <div class="pw-bar" id="pb4"></div>
+        </div>
+        <div class="pw-hint" id="pw-hint"></div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" id="register-btn">
+        Create account
+      </button>
+
+      <p style="text-align:center;font-size:12px;color:var(--text-muted);margin-top:16px">
+        By signing up you agree to our
+        <a href="#" style="color:var(--primary)">Terms of Service</a>
+      </p>
+    </form>
+
+    <!-- ── FORGOT PASSWORD (hidden) ── -->
+    <form class="auth-form" id="forgot-form" novalidate>
+      <p style="font-size:13px;color:var(--text-secondary);margin-bottom:20px">
+        Enter your email and we'll send a reset link.
+      </p>
+      <div class="form-group">
+        <label class="form-label" for="forgot-email">Email address</label>
+        <input class="form-input" type="email" id="forgot-email" placeholder="you@example.com" required />
+      </div>
+      <button type="submit" class="btn btn-primary" id="forgot-btn">Send reset link</button>
+      <button type="button" class="btn btn-ghost" id="back-to-login" style="width:100%;margin-top:10px">← Back to sign in</button>
+    </form>
+
+  </div>
+</div>
+
+<div class="toast-container" id="toast-container"></div>
+
+<script type="module">
+import { signIn, signUp, supabase, getSession } from './src/js/supabase.js';
+
+// ── Redirect if already logged in ──
+(async () => {
+  const session = await getSession();
+  if (session) window.location.replace('dashboard.html');
+})();
+
+// ─────────────────────────────────────────────
+// Helpers
+// ─────────────────────────────────────────────
+function showAlert(msg, type = 'error') {
+  const el = document.getElementById('auth-alert');
+  el.innerHTML = `<span>${type === 'error' ? '⚠️' : '✅'}</span> ${msg}`;
+  el.className = `alert alert-${type} show`;
+}
+function hideAlert() {
+  document.getElementById('auth-alert').className = 'alert';
+}
+
+function setLoading(btn, loading, label) {
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="spinner"></span>&ensp;Please wait…'
+    : label;
+}
+
+function toast(msg, type = 'info') {
+  const tc = document.getElementById('toast-container');
+  const el = document.createElement('div');
+  el.className = `toast toast-${type}`;
+  el.textContent = msg;
+  tc.appendChild(el);
+  el.addEventListener('click', () => el.remove());
+  setTimeout(() => { el.style.opacity = '0'; el.style.transform = 'translateX(20px)'; }, 3000);
+  setTimeout(() => el.remove(), 3400);
+}
+
+// ─────────────────────────────────────────────
+// Tab switching
+// ─────────────────────────────────────────────
+document.querySelectorAll('.auth-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    const target = tab.dataset.tab;
+    document.querySelectorAll('.auth-tab').forEach(t => {
+      t.classList.remove('active');
+      t.setAttribute('aria-selected', 'false');
+    });
+    document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+    tab.classList.add('active');
+    tab.setAttribute('aria-selected', 'true');
+    document.getElementById(`${target}-form`).classList.add('active');
+    hideAlert();
+  });
+});
+
+// ─────────────────────────────────────────────
+// Password toggle
+// ─────────────────────────────────────────────
+document.querySelectorAll('[data-toggle-pw]').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const input = document.getElementById(btn.dataset.togglePw);
+    const isHidden = input.type === 'password';
+    input.type = isHidden ? 'text' : 'password';
+    btn.textContent = isHidden ? '🙈' : '👁️';
+  });
+});
+
+// ─────────────────────────────────────────────
+// Password strength
+// ─────────────────────────────────────────────
+document.getElementById('reg-password').addEventListener('input', function () {
+  const v = this.value;
+  let score = 0;
+  if (v.length >= 6)  score++;
+  if (v.length >= 10) score++;
+  if (/[A-Z]/.test(v) && /[0-9]/.test(v)) score++;
+  if (/[^A-Za-z0-9]/.test(v)) score++;
+  const cls = ['', 'weak', 'medium', 'strong', 'strong'];
+  const hint = ['', 'Too simple', 'Could be stronger', 'Good password', '💪 Strong password'];
+  [1, 2, 3, 4].forEach(i => {
+    document.getElementById(`pb${i}`).className = `pw-bar ${i <= score ? cls[score] : ''}`;
+  });
+  document.getElementById('pw-hint').textContent = v ? hint[score] : '';
+});
+
+// ─────────────────────────────────────────────
+// Username counter + sanitize
+// ─────────────────────────────────────────────
+document.getElementById('reg-username').addEventListener('input', function () {
+  this.value = this.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+  document.getElementById('username-count').textContent = this.value.length;
+});
+
+// ─────────────────────────────────────────────
+// Sign In
+// ─────────────────────────────────────────────
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAlert();
+  const email    = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+  if (!email || !password) { showAlert('Please fill in all fields.'); return; }
+
+  const btn = document.getElementById('login-btn');
+  setLoading(btn, true, 'Sign In');
+
+  const { error } = await signIn(email, password);
+  setLoading(btn, false, 'Sign In');
+
+  if (error) {
+    const msg = error.message.includes('Invalid login')
+      ? 'Invalid email or password.'
+      : error.message;
+    showAlert(msg);
+    return;
+  }
+  showAlert('Signed in! Redirecting…', 'success');
+  setTimeout(() => window.location.replace('dashboard.html'), 700);
+});
+
+// ─────────────────────────────────────────────
+// Sign Up
+// ─────────────────────────────────────────────
+document.getElementById('register-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  hideAlert();
+
+  const fullName = document.getElementById('reg-fullname').value.trim();
+  const username = document.getElementById('reg-username').value.trim();
+  const email    = document.getElementById('reg-email').value.trim();
+  const password = document.getElementById('reg-password').value;
+
+  if (!fullName || !username || !email || !password) {
+    showAlert('Please fill in all fields.');
+    return;
+  }
+  if (username.length < 3) {
+    showAlert('Username must be at least 3 characters.');
+    return;
+  }
+  if (password.length < 6) {
+    showAlert('Password must be at least 6 characters.');
+    return;
+  }
+
+  const btn = document.getElementById('register-btn');
+  setLoading(btn, true, 'Create account');
+
+  const { error } = await signUp(email, password, username, fullName);
+  setLoading(btn, false, 'Create account');
+
+  if (error) {
+    const msg = error.message.includes('already registered')
+      ? 'This email is already in use.'
+      : error.message;
+    showAlert(msg);
+    return;
+  }
+  showAlert('Account created! Signing you in…', 'success');
+  setTimeout(() => window.location.replace('dashboard.html'), 1000);
+});
+
+// ─────────────────────────────────────────────
+// Forgot Password
+// ─────────────────────────────────────────────
+document.getElementById('forgot-pw-link').addEventListener('click', (e) => {
+  e.preventDefault();
+  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+  document.querySelectorAll('.auth-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('forgot-form').classList.add('active');
+  hideAlert();
+});
+
+document.getElementById('back-to-login').addEventListener('click', () => {
+  document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
+  document.getElementById('login-form').classList.add('active');
+  document.querySelector('[data-tab="login"]').classList.add('active');
+  hideAlert();
+});
+
+document.getElementById('forgot-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const email = document.getElementById('forgot-email').value.trim();
+  if (!email) { showAlert('Enter your email address.'); return; }
+  const btn = document.getElementById('forgot-btn');
+  setLoading(btn, true, 'Send reset link');
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${location.origin}/index.html`,
+  });
+  setLoading(btn, false, 'Send reset link');
+  if (error) { showAlert(error.message); return; }
+  showAlert('Reset link sent! Check your inbox.', 'success');
+});
+</script>
+</body>
+</html>
